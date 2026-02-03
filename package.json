@@ -1,0 +1,16 @@
+{
+  "name": "mysticcastle",
+  "version": "1.0.0",
+  "description": "A classic text adventure game - explore a mysterious castle, solve puzzles, and uncover its secrets",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "keywords": ["text-adventure", "game", "interactive-fiction"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

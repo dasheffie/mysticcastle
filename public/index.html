@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MysticCastle - A Text Adventure</title>
+  <meta name="description" content="Explore a mysterious castle, solve puzzles, and uncover ancient secrets in this classic text adventure game.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏰</text></svg>">
+  <style>
+    :root {
+      --bg-dark: #0d0a14;
+      --bg-medium: #1a1525;
+      --bg-light: #2a2438;
+      --purple-glow: #8b5cf6;
+      --purple-dim: #6d4aad;
+      --text-bright: #e8e4f0;
+      --text-dim: #9992a8;
+      --text-muted: #5e576d;
+      --accent-gold: #d4a857;
+      --accent-red: #d35858;
+      --accent-green: #5ab87a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background: var(--bg-dark);
+      color: var(--text-bright);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .game-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    header {
+      text-align: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--bg-light);
+      margin-bottom: 1rem;
+    }
+    header h1 {
+      font-size: 1.8rem;
+      color: var(--purple-glow);
+      text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+      letter-spacing: 0.2em;
+    }
+    header p { color: var(--text-dim); font-size: 0.8rem; margin-top: 0.25rem; }
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: var(--bg-medium);
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .status-location { color: var(--accent-gold); font-weight: bold; }
+    .status-items { color: var(--text-dim); }
+    .status-moves { color: var(--text-muted); }
+    .output-area {
+      flex: 1;
+      background: var(--bg-medium);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      overflow-y: auto;
+      min-height: 300px;
+      max-height: 60vh;
+    }
+    .output-line { margin-bottom: 0.75rem; line-height: 1.6; }
+    .output-line.room-title { color: var(--accent-gold); font-weight: bold; font-size: 1.1rem; margin-top: 0.5rem; }
+    .output-line.room-desc { color: var(--text-bright); }
+    .output-line.exits { color: var(--purple-dim); font-style: italic; }
+    .output-line.items { color: var(--accent-green); }
+    .output-line.command { color: var(--text-muted); }
+    .output-line.command::before { content: "> "; color: var(--purple-glow); }
+    .output-line.error { color: var(--accent-red); }
+    .output-line.success { color: var(--accent-green); }
+    .output-line.system { color: var(--purple-glow); text-align: center; padding: 0.5rem; }
+    .output-line.victory { color: var(--accent-gold); text-align: center; font-size: 1.2rem; padding: 1rem; text-shadow: 0 0 10px rgba(212, 168, 87, 0.5); }
+    .input-area {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding: 0.5rem;
+      background: var(--bg-light);
+      border-radius: 0.5rem;
+    }
+    .input-prompt { color: var(--purple-glow); font-size: 1.1rem; padding: 0.75rem 0 0.75rem 0.5rem; }
+    #commandInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 0.75rem;
+      outline: none;
+    }
+    #commandInput::placeholder { color: var(--text-muted); }
+    .submit-btn {
+      background: var(--purple-glow);
+      border: none;
+      color: white;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+    }
+    .submit-btn:hover { background: var(--purple-dim); }
+    .quick-commands {
+      display: none;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      justify-content: center;
+    }
+    .quick-btn {
+      background: var(--bg-light);
+      border: 1px solid var(--bg-light);
+      color: var(--text-dim);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.8rem;
+    }
+    .quick-btn:hover, .quick-btn:active { background: var(--purple-dim); border-color: var(--purple-glow); color: var(--text-bright); }
+    .menu-bar { display: flex; justify-content: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+    .menu-btn {
+      background: none;
+      border: 1px solid var(--text-muted);
+      color: var(--text-dim);
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.8rem;
+    }
+    .menu-btn:hover { border-color: var(--purple-glow); color: var(--purple-glow); }
+    footer { text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.75rem; }
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.4rem; }
+      .output-area { min-height: 250px; max-height: 45vh; }
+      .status-bar { font-size: 0.75rem; }
+      .quick-commands { display: flex; }
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <header>
+      <h1>🏰 MYSTIC CASTLE</h1>
+      <p>A Text Adventure</p>
+    </header>
+    <div class="status-bar">
+      <span class="status-location" id="statusLocation">Castle Entrance</span>
+      <span class="status-items" id="statusItems">Inventory: 0 items</span>
+      <span class="status-moves" id="statusMoves">Moves: 0</span>
+    </div>
+    <div class="output-area" id="output"></div>
+    <div class="input-area">
+      <span class="input-prompt">></span>
+      <input type="text" id="commandInput" placeholder="Enter command..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button class="submit-btn" id="submitBtn">GO</button>
+    </div>
+    <div class="quick-commands">
+      <button class="quick-btn" data-cmd="north">North</button>
+      <button class="quick-btn" data-cmd="south">South</button>
+      <button class="quick-btn" data-cmd="east">East</button>
+      <button class="quick-btn" data-cmd="west">West</button>
+      <button class="quick-btn" data-cmd="up">Up</button>
+      <button class="quick-btn" data-cmd="down">Down</button>
+      <button class="quick-btn" data-cmd="look">Look</button>
+      <button class="quick-btn" data-cmd="inventory">Inv</button>
+    </div>
+    <div class="menu-bar">
+      <button class="menu-btn" onclick="showHelp()">Help</button>
+      <button class="menu-btn" onclick="saveGame()">Save</button>
+      <button class="menu-btn" onclick="loadGame()">Load</button>
+      <button class="menu-btn" onclick="newGame()">New Game</button>
+    </div>
+    <footer>
+      <p>Type "help" for commands • Your progress is saved locally</p>
+    </footer>
+  </div>
+
+  <script>
+    // ==================== GAME DATA ====================
+    const ROOMS = {
+      entrance: {
+        name: "Castle Entrance",
+        description: "You stand before the massive iron gates of MysticCastle. The ancient stonework looms above, weathered by centuries. Gargoyles with hollow eyes peer down from their perches. The gates hang open, creaking in the cold breeze. A faded inscription reads: 'Those who seek the Crown must prove their worth.'",
+        exits: { north: "courtyard" },
+        items: []
+      },
+      courtyard: {
+        name: "Overgrown Courtyard",
+        description: "A once-grand courtyard now reclaimed by nature. Dead vines crawl up crumbling statues of forgotten knights. A dry fountain stands in the center, filled with dead leaves. The main keep rises to the north, while archways lead east and west.",
+        exits: { south: "entrance", north: "greathall", east: "chapel", west: "stables" },
+        items: ["rusty key"]
+      },
+      greathall: {
+        name: "The Great Hall",
+        description: "Tattered banners hang from the vaulted ceiling. A massive oak table stretches the length of the hall, still set with tarnished silver. Moonlight streams through shattered windows. A grand staircase leads upward, and a door east leads to the kitchen.",
+        exits: { south: "courtyard", up: "gallery", east: "kitchen" },
+        items: ["silver goblet"]
+      },
+      chapel: {
+        name: "Abandoned Chapel",
+        description: "Rows of dusty pews face a stone altar draped in moth-eaten cloth. Stained glass windows cast eerie colored light. The air smells of old incense and secrets. A confessional booth stands in the corner, its door slightly ajar.",
+        exits: { west: "courtyard" },
+        items: ["holy symbol"]
+      },
+      stables: {
+        name: "Ruined Stables",
+        description: "Empty stalls line the walls, still bearing nameplates for horses long dead. Rotting hay carpets the floor. Something scratched deep gouges into the wooden walls — from the inside. A trapdoor leads down into darkness.",
+        exits: { east: "courtyard", down: "cellar" },
+        items: []
+      },
+      cellar: {
+        name: "Wine Cellar",
+        dark: true,
+        description: "Complete darkness surrounds you. The air is cold and damp, thick with mold and old wine. You hear water dripping somewhere in the blackness.",
+        descriptionLit: "Your lamp reveals rows of wine racks, most bottles shattered. Cobwebs hang like curtains. Against the far wall, you notice a loose stone that doesn't quite match the others.",
+        exits: { up: "stables" },
+        items: ["ancient wine"],
+        secrets: {
+          "loose stone": {
+            description: "Behind the loose stone, you find a hidden compartment containing a gleaming crystal key!",
+            gives: "crystal key",
+            oneTime: true
+          }
+        }
+      },
+      kitchen: {
+        name: "Castle Kitchen",
+        description: "A cavernous kitchen with massive cold fireplaces. Copper pots hang from hooks, green with age. Strangely, a single candle burns on the center table, its flame steady despite no wind.",
+        exits: { west: "greathall" },
+        items: ["brass lamp"]
+      },
+      gallery: {
+        name: "Portrait Gallery",
+        description: "A long hallway lined with portraits of former lords and ladies. Their painted eyes seem to follow you. Many faces have been scratched out. The last portrait shows a king holding a golden crown — but the crown has been cut from the canvas.",
+        exits: { down: "greathall", north: "library", east: "bedroom" },
+        items: []
+      },
+      library: {
+        name: "The Grand Library",
+        description: "Towering bookshelves reach to a domed ceiling painted with constellations. Most books have crumbled to dust. A reading desk holds an open book with strange symbols. A spiral staircase leads up to the tower.",
+        exits: { south: "gallery", up: "tower" },
+        items: ["spell book"]
+      },
+      bedroom: {
+        name: "Lord's Bedchamber",
+        description: "A four-poster bed dominates the room, its curtains dusty. A vanity mirror reflects nothing — just empty darkness where your reflection should be. An ornate wardrobe stands against the wall. Looking closer at the wardrobe, you notice it has a false back...",
+        exits: { west: "gallery" },
+        items: [],
+        locked: true,
+        lockedMessage: "The bedroom door is locked with an ornate crystal lock.",
+        keyRequired: "crystal key",
+        secrets: {
+          "wardrobe": {
+            description: "You push aside the false back of the wardrobe and discover a hidden passage leading to a secret vault!",
+            opensRoom: "vault",
+            oneTime: true
+          }
+        }
+      },
+      tower: {
+        name: "Wizard's Tower",
+        description: "The castle's highest tower. Arcane instruments and star charts cover every surface. In the center, on a pedestal of black marble, rests THE CROWN OF WHISPERS — glowing with inner light.",
+        exits: { down: "library" },
+        items: ["crown of whispers"],
+        locked: true,
+        lockedMessage: "A magical barrier blocks your way. Strange runes pulse with purple light. Perhaps a spell book could help...",
+        keyRequired: "spell book"
+      },
+      vault: {
+        name: "The Secret Vault",
+        description: "You've discovered the castle's hidden treasure vault! Gold coins glitter in the corners, jeweled weapons hang on walls. But the true treasure is the journey that brought you here.",
+        exits: { out: "bedroom" },
+        items: [],
+        isVictory: true
+      }
+    };
+
+    const ITEMS = {
+      "rusty key": { description: "An old iron key, orange with rust but still functional. It might open something simple.", takeable: true },
+      "silver goblet": { description: "A tarnished silver goblet engraved with the castle's coat of arms.", takeable: true },
+      "holy symbol": { description: "A small golden medallion bearing a sacred symbol. It feels warm to the touch.", takeable: true },
+      "brass lamp": { description: "An old brass oil lamp. It still has fuel and could light dark places. Use it to light it.", takeable: true, isLight: true },
+      "ancient wine": { description: "A dusty bottle of wine, hundreds of years old. The cork is still sealed.", takeable: true },
+      "crystal key": { description: "A key carved from pure crystal. It glows faintly with inner light.", takeable: true },
+      "spell book": { description: "A leather-bound tome of arcane knowledge. The pages shimmer with magical energy.", takeable: true },
+      "crown of whispers": { description: "The legendary Crown of Whispers. Ancient voices murmur from within its golden band.", takeable: true, isGoal: true }
+    };
+
+    const ALIASES = {
+      n: "north", s: "south", e: "east", w: "west", u: "up", d: "down",
+      get: "take", grab: "take", pick: "take",
+      l: "look", examine: "look", x: "look", inspect: "look", search: "look",
+      i: "inventory", inv: "inventory",
+      light: "use", activate: "use", open: "use"
+    };
+
+    const DIRECTIONS = ["north", "south", "east", "west", "up", "down", "out"];
+
+    // ==================== GAME STATE ====================
+    let gameState = {
+      currentRoom: "entrance",
+      inventory: [],
+      moves: 0,
+      roomStates: {},
+      secretsFound: {},
+      lampLit: false,
+      gameWon: false,
+      vaultOpen: false,
+      startTime: Date.now()
+    };
+
+    let commandHistory = [];
+    let historyIndex = -1;
+    let typewriterQueue = [];
+    let isTyping = false;
+
+    // ==================== DOM ====================
+    const output = document.getElementById("output");
+    const commandInput = document.getElementById("commandInput");
+    const submitBtn = document.getElementById("submitBtn");
+    const statusLocation = document.getElementById("statusLocation");
+    const statusItems = document.getElementById("statusItems");
+    const statusMoves = document.getElementById("statusMoves");
+
+    // ==================== OUTPUT ====================
+    function print(text, className = "", typewriter = true) {
+      const line = document.createElement("div");
+      line.className = "output-line" + (className ? " " + className : "");
+      if (typewriter && text.length > 0) {
+        typewriterQueue.push({ element: line, text, index: 0 });
+        output.appendChild(line);
+        if (!isTyping) processTypewriter();
+      } else {
+        line.textContent = text;
+        output.appendChild(line);
+        scrollToBottom();
+      }
+    }
+
+    function processTypewriter() {
+      if (typewriterQueue.length === 0) { isTyping = false; return; }
+      isTyping = true;
+      const item = typewriterQueue[0];
+      if (item.index < item.text.length) {
+        const chars = item.text.length > 150 ? 4 : item.text.length > 80 ? 2 : 1;
+        item.element.textContent += item.text.substr(item.index, chars);
+        item.index += chars;
+        scrollToBottom();
+        setTimeout(processTypewriter, 12);
+      } else {
+        typewriterQueue.shift();
+        processTypewriter();
+      }
+    }
+
+    function skipTypewriter() {
+      while (typewriterQueue.length > 0) {
+        const item = typewriterQueue.shift();
+        item.element.textContent = item.text;
+      }
+      isTyping = false;
+      scrollToBottom();
+    }
+
+    function scrollToBottom() { output.scrollTop = output.scrollHeight; }
+
+    function updateStatus() {
+      const room = ROOMS[gameState.currentRoom];
+      statusLocation.textContent = room.name;
+      statusItems.textContent = `Inventory: ${gameState.inventory.length} item${gameState.inventory.length !== 1 ? "s" : ""}`;
+      statusMoves.textContent = `Moves: ${gameState.moves}`;
+    }
+
+    // ==================== ROOM FUNCTIONS ====================
+    function getRoomItems(roomId) {
+      if (gameState.roomStates[roomId]?.items !== undefined) return gameState.roomStates[roomId].items;
+      return [...ROOMS[roomId].items];
+    }
+
+    function setRoomItems(roomId, items) {
+      if (!gameState.roomStates[roomId]) gameState.roomStates[roomId] = {};
+      gameState.roomStates[roomId].items = items;
+    }
+
+    function canSeeInRoom(roomId) {
+      const room = ROOMS[roomId];
+      if (!room.dark) return true;
+      return gameState.inventory.includes("brass lamp") && gameState.lampLit;
+    }
+
+    function describeRoom(roomId) {
+      const room = ROOMS[roomId];
+      const canSee = canSeeInRoom(roomId);
+      print(room.name, "room-title");
+      if (canSee) {
+        print(room.descriptionLit || room.description, "room-desc");
+        const items = getRoomItems(roomId);
+        if (items.length > 0) print(`You can see: ${items.join(", ")}`, "items");
+        let exits = Object.keys(room.exits);
+        if (roomId === "bedroom" && gameState.vaultOpen) exits.push("vault (through wardrobe)");
+        if (exits.length > 0) print(`Exits: ${exits.join(", ")}`, "exits");
+      } else {
+        print(room.description, "room-desc");
+        print("You need a light source to see.", "error");
+      }
+      if (room.isVictory && !gameState.gameWon) {
+        gameState.gameWon = true;
+        print("");
+        print("🎉 CONGRATULATIONS! 🎉", "victory");
+        print("You have conquered MysticCastle!", "victory");
+        print(`Total moves: ${gameState.moves}`, "system");
+        const mins = Math.floor((Date.now() - gameState.startTime) / 60000);
+        print(`Time: ${mins} minute${mins !== 1 ? "s" : ""}`, "system");
+      }
+    }
+
+    // ==================== COMMANDS ====================
+    function parseCommand(input) {
+      const words = input.toLowerCase().trim().split(/\s+/);
+      if (words.length === 0 || words[0] === "") return null;
+      let verb = words[0];
+      let noun = words.slice(1).join(" ");
+      if (ALIASES[verb]) {
+        const aliased = ALIASES[verb];
+        if (DIRECTIONS.includes(aliased) && !noun) { noun = aliased; verb = "go"; }
+        else verb = aliased;
+      }
+      if (DIRECTIONS.includes(verb) && !noun) { noun = verb; verb = "go"; }
+      noun = noun.replace(/^(the|a|an)\s+/i, "");
+      return { verb, noun };
+    }
+
+    function executeCommand(input) {
+      if (isTyping) { skipTypewriter(); return; }
+      if (input.toLowerCase() === "new game") { newGame(); return; }
+      if (gameState.gameWon) { print("You've won! Type 'new game' to play again.", "system"); return; }
+      
+      print(input, "command");
+      const cmd = parseCommand(input);
+      if (!cmd) { print("I didn't understand that.", "error"); return; }
+      
+      gameState.moves++;
+      updateStatus();
+      
+      switch (cmd.verb) {
+        case "go": handleGo(cmd.noun); break;
+        case "look": handleLook(cmd.noun); break;
+        case "take": handleTake(cmd.noun); break;
+        case "drop": handleDrop(cmd.noun); break;
+        case "inventory": handleInventory(); break;
+        case "use": handleUse(cmd.noun); break;
+        case "read": handleRead(cmd.noun); break;
+        case "help": showHelp(); break;
+        default:
+          if (DIRECTIONS.includes(cmd.verb)) handleGo(cmd.verb);
+          else { print("I don't know how to do that. Type 'help'.", "error"); gameState.moves--; }
+      }
+      autoSave();
+    }
+
+    function handleGo(direction) {
+      const room = ROOMS[gameState.currentRoom];
+      if (!direction) { print("Go where?", "error"); gameState.moves--; return; }
+      
+      // Special case for vault
+      if (direction === "vault" && gameState.currentRoom === "bedroom" && gameState.vaultOpen) {
+        gameState.currentRoom = "vault";
+        print("");
+        describeRoom("vault");
+        return;
+      }
+      
+      const nextRoomId = room.exits[direction];
+      if (!nextRoomId) { print("You can't go that way.", "error"); return; }
+      
+      const nextRoom = ROOMS[nextRoomId];
+      if (nextRoom.locked) {
+        const key = nextRoom.keyRequired;
+        if (gameState.inventory.includes(key)) {
+          print(`You use the ${key} to unlock the way.`, "success");
+          nextRoom.locked = false;
+        } else {
+          print(nextRoom.lockedMessage, "error");
+          return;
+        }
+      }
+      
+      gameState.currentRoom = nextRoomId;
+      print("");
+      describeRoom(nextRoomId);
+    }
+
+    function handleLook(noun) {
+      const room = ROOMS[gameState.currentRoom];
+      const canSee = canSeeInRoom(gameState.currentRoom);
+      
+      if (!noun || noun === "around" || noun === "room") { describeRoom(gameState.currentRoom); return; }
+      if (!canSee) { print("It's too dark to see.", "error"); return; }
+      
+      if (gameState.inventory.includes(noun)) { print(ITEMS[noun].description); return; }
+      
+      const roomItems = getRoomItems(gameState.currentRoom);
+      if (roomItems.includes(noun)) { print(ITEMS[noun].description); return; }
+      
+      if (room.secrets && room.secrets[noun]) {
+        const secret = room.secrets[noun];
+        const key = `${gameState.currentRoom}_${noun}`;
+        if (secret.oneTime && gameState.secretsFound[key]) {
+          print("You've already searched there.");
+          return;
+        }
+        print(secret.description, "success");
+        if (secret.gives) {
+          gameState.inventory.push(secret.gives);
+          print(`You obtained: ${secret.gives}`, "success");
+        }
+        if (secret.opensRoom) gameState.vaultOpen = true;
+        gameState.secretsFound[key] = true;
+        return;
+      }
+      
+      print("You don't see anything special.", "error");
+    }
+
+    function handleTake(noun) {
+      if (!noun) { print("Take what?", "error"); gameState.moves--; return; }
+      const canSee = canSeeInRoom(gameState.currentRoom);
+      if (!canSee) { print("It's too dark to see.", "error"); return; }
+      
+      const roomItems = getRoomItems(gameState.currentRoom);
+      const idx = roomItems.indexOf(noun);
+      if (idx === -1) { print("You don't see that here.", "error"); return; }
+      
+      const item = ITEMS[noun];
+      if (!item?.takeable) { print("You can't take that.", "error"); return; }
+      
+      roomItems.splice(idx, 1);
+      setRoomItems(gameState.currentRoom, roomItems);
+      gameState.inventory.push(noun);
+      print(`You take the ${noun}.`, "success");
+      updateStatus();
+      
+      if (item.isGoal) {
+        print("");
+        print("The Crown of Whispers pulses with ancient power as you lift it. You feel the weight of centuries upon your brow.", "success");
+        print("But wait... there may be more secrets to uncover in this castle.", "system");
+      }
+    }
+
+    function handleDrop(noun) {
+      if (!noun) { print("Drop what?", "error"); gameState.moves--; return; }
+      const idx = gameState.inventory.indexOf(noun);
+      if (idx === -1) { print("You don't have that.", "error"); return; }
+      
+      gameState.inventory.splice(idx, 1);
+      const roomItems = getRoomItems(gameState.currentRoom);
+      roomItems.push(noun);
+      setRoomItems(gameState.currentRoom, roomItems);
+      print(`You drop the ${noun}.`, "success");
+      updateStatus();
+    }
+
+    function handleInventory() {
+      if (gameState.inventory.length === 0) {
+        print("You're not carrying anything.");
+      } else {
+        print("You are carrying:");
+        gameState.inventory.forEach(item => {
+          const lampStatus = item === "brass lamp" ? (gameState.lampLit ? " (lit)" : " (unlit)") : "";
+          print(`  - ${item}${lampStatus}`);
+        });
+      }
+    }
+
+    function handleUse(noun) {
+      if (!noun) { print("Use what?", "error"); gameState.moves--; return; }
+      if (!gameState.inventory.includes(noun)) { print("You don't have that.", "error"); return; }
+      
+      if (noun === "brass lamp" || noun === "lamp") {
+        gameState.lampLit = !gameState.lampLit;
+        print(gameState.lampLit ? "The lamp flickers to life, casting warm light." : "You extinguish the lamp.", "success");
+        if (gameState.lampLit && ROOMS[gameState.currentRoom].dark) {
+          print("");
+          describeRoom(gameState.currentRoom);
+        }
+        return;
+      }
+      
+      if (noun === "ancient wine" || noun === "wine") {
+        print("You uncork the ancient wine and take a sip. It's surprisingly good for being centuries old!", "success");
+        return;
+      }
+      
+      if (noun === "spell book") {
+        print("The arcane symbols dance before your eyes. You feel magical knowledge flowing into your mind.", "success");
+        return;
+      }
+      
+      print("You're not sure how to use that here.", "error");
+    }
+
+    function handleRead(noun) {
+      if (!noun) { print("Read what?", "error"); gameState.moves--; return; }
+      if (noun === "spell book" || noun === "book") {
+        if (gameState.inventory.includes("spell book")) {
+          print("The spell book contains rituals for dispelling magical barriers. The knowledge imprints itself in your mind.", "success");
+        } else {
+          print("You don't have that.", "error");
+        }
+        return;
+      }
+      print("There's nothing to read.", "error");
+    }
+
+    function showHelp() {
+      print("━━━ COMMANDS ━━━", "system");
+      print("MOVEMENT: north/n, south/s, east/e, west/w, up/u, down/d");
+      print("ACTIONS: look [thing], take [item], drop [item], use [item], read [item]");
+      print("INFO: inventory/i, help, save, load, new game");
+      print("TIPS: Examine everything! Dark rooms need light. Some things are hidden.");
+    }
+
+    // ==================== SAVE/LOAD ====================
+    const SAVE_KEY = "mysticcastle_save";
+    
+    function autoSave() {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+    }
+    
+    function saveGame() {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+      print("Game saved.", "success");
+    }
+    
+    function loadGame() {
+      const saved = localStorage.getItem(SAVE_KEY);
+      if (saved) {
+        gameState = JSON.parse(saved);
+        output.innerHTML = "";
+        print("Game loaded.", "success");
+        print("");
+        describeRoom(gameState.currentRoom);
+        updateStatus();
+      } else {
+        print("No saved game found.", "error");
+      }
+    }
+    
+    function newGame() {
+      localStorage.removeItem(SAVE_KEY);
+      gameState = {
+        currentRoom: "entrance",
+        inventory: [],
+        moves: 0,
+        roomStates: {},
+        secretsFound: {},
+        lampLit: false,
+        gameWon: false,
+        vaultOpen: false,
+        startTime: Date.now()
+      };
+      // Reset room locks
+      ROOMS.bedroom.locked = true;
+      ROOMS.tower.locked = true;
+      output.innerHTML = "";
+      print("━━━ MYSTIC CASTLE ━━━", "system");
+      print("A Text Adventure", "system");
+      print("");
+      describeRoom("entrance");
+      updateStatus();
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    commandInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const input = commandInput.value.trim();
+        if (input) {
+          commandHistory.push(input);
+          historyIndex = commandHistory.length;
+          executeCommand(input);
+          commandInput.value = "";
+        }
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (historyIndex > 0) {
+          historyIndex--;
+          commandInput.value = commandHistory[historyIndex];
+        }
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (historyIndex < commandHistory.length - 1) {
+          historyIndex++;
+          commandInput.value = commandHistory[historyIndex];
+        } else {
+          historyIndex = commandHistory.length;
+          commandInput.value = "";
+        }
+      }
+    });
+
+    submitBtn.addEventListener("click", () => {
+      const input = commandInput.value.trim();
+      if (input) {
+        commandHistory.push(input);
+        historyIndex = commandHistory.length;
+        executeCommand(input);
+        commandInput.value = "";
+      }
+      commandInput.focus();
+    });
+
+    document.querySelectorAll(".quick-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cmd = btn.dataset.cmd;
+        executeCommand(cmd);
+        commandInput.focus();
+      });
+    });
+
+    // ==================== INIT ====================
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (saved) {
+      gameState = JSON.parse(saved);
+      print("Welcome back to MysticCastle!", "system");
+      print("(Your progress has been restored)", "system");
+      print("");
+      describeRoom(gameState.currentRoom);
+    } else {
+      print("━━━ MYSTIC CASTLE ━━━", "system");
+      print("A Text Adventure", "system");
+      print("");
+      print("You have heard tales of the legendary Crown of Whispers, hidden somewhere within the ancient MysticCastle. Many have sought it; none have returned. Will you be the first to uncover its secrets?", "room-desc");
+      print("");
+      describeRoom("entrance");
+    }
+    updateStatus();
+    commandInput.focus();
+  </script>
+</body>
+</html>
