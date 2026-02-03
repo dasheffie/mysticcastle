@@ -231,8 +231,8 @@
         name: "Wine Cellar",
         dark: true,
         description: "Complete darkness surrounds you. The air is cold and damp, thick with mold and old wine. You hear water dripping somewhere in the blackness.",
-        descriptionLit: "Your lamp reveals rows of wine racks, most bottles shattered. Cobwebs hang like curtains. Against the far wall, you notice a loose stone that doesn't quite match the others.",
-        exits: { up: "stables" },
+        descriptionLit: "Your lamp reveals rows of wine racks, most bottles shattered. Cobwebs hang like curtains. Against the far wall, you notice a loose stone that doesn't quite match the others. In the back corner, a crumbling archway leads to descending stairs. Warm air rises from below, carrying the scent of sulfur.",
+        exits: { up: "stables", down: "dungeonstairs" },
         items: ["ancient wine"],
         secrets: {
           "loose stone": {
@@ -291,6 +291,20 @@
         exits: { out: "bedroom" },
         items: [],
         isVictory: true
+      },
+      dungeonstairs: {
+        name: "Descending Stairs",
+        description: "A narrow spiral staircase carved from black stone winds down into the earth. The air grows warmer with each step. Scorch marks line the walls, and the smell of sulfur grows stronger. Ancient dwarven runes warn: 'TURN BACK - HERE SLEEPS FIRE.'",
+        exits: { up: "cellar", down: "lair" },
+        items: []
+      },
+      lair: {
+        name: "The Dragon's Lair",
+        description: "An enormous cavern glitters with gold and jewels piled into mountains. Atop the largest hoard lies VERMITHRAX, an ancient red dragon. One golden eye cracks open, watching you. Smoke curls from his nostrils. 'A thief?' his voice rumbles like thunder. 'Or... a guest? It has been so long since I had company.'",
+        exits: { up: "dungeonstairs" },
+        items: ["dragon scale", "golden chalice"],
+        hasDragon: true,
+        dragonState: "awake"
       }
     };
 
@@ -302,7 +316,10 @@
       "ancient wine": { description: "A dusty bottle of wine, hundreds of years old. The cork is still sealed.", takeable: true },
       "crystal key": { description: "A key carved from pure crystal. It glows faintly with inner light.", takeable: true },
       "spell book": { description: "A leather-bound tome of arcane knowledge. The pages shimmer with magical energy.", takeable: true },
-      "crown of whispers": { description: "The legendary Crown of Whispers. Ancient voices murmur from within its golden band.", takeable: true, isGoal: true }
+      "crown of whispers": { description: "The legendary Crown of Whispers. Ancient voices murmur from within its golden band.", takeable: true, isGoal: true },
+      "dragon scale": { description: "A palm-sized scale shed by Vermithrax. It shimmers crimson and gold, warm to the touch. A gift from the dragon himself.", takeable: true },
+      "golden chalice": { description: "A jewel-encrusted chalice from the dragon's hoard. Vermithrax allowed you to take it - a sign of respect.", takeable: true },
+      "dragon tooth": { description: "An ancient dragon tooth, given as a token of friendship by Vermithrax. It pulses with inner fire.", takeable: true }
     };
 
     const ALIASES = {
@@ -310,7 +327,9 @@
       get: "take", grab: "take", pick: "take",
       l: "look", examine: "look", x: "look", inspect: "look", search: "look",
       i: "inventory", inv: "inventory",
-      light: "use", activate: "use", open: "use"
+      light: "use", activate: "use", open: "use",
+      speak: "talk", say: "talk", chat: "talk", greet: "talk",
+      give: "offer", present: "offer", share: "offer"
     };
 
     const DIRECTIONS = ["north", "south", "east", "west", "up", "down", "out"];
@@ -325,6 +344,8 @@
       lampLit: false,
       gameWon: false,
       vaultOpen: false,
+      dragonDialogue: 0,
+      dragonFriendly: false,
       startTime: Date.now()
     };
 
@@ -469,6 +490,8 @@
         case "inventory": handleInventory(); break;
         case "use": handleUse(cmd.noun); break;
         case "read": handleRead(cmd.noun); break;
+        case "talk": handleTalk(cmd.noun); break;
+        case "offer": handleOffer(cmd.noun); break;
         case "help": showHelp(); break;
         default:
           if (DIRECTIONS.includes(cmd.verb)) handleGo(cmd.verb);
@@ -546,6 +569,7 @@
       const canSee = canSeeInRoom(gameState.currentRoom);
       if (!canSee) { print("It's too dark to see.", "error"); return; }
       
+      const room = ROOMS[gameState.currentRoom];
       const roomItems = getRoomItems(gameState.currentRoom);
       const idx = roomItems.indexOf(noun);
       if (idx === -1) { print("You don't see that here.", "error"); return; }
@@ -553,11 +577,29 @@
       const item = ITEMS[noun];
       if (!item?.takeable) { print("You can't take that.", "error"); return; }
       
+      // Special dragon lair handling
+      if (room.hasDragon && !gameState.dragonFriendly) {
+        print("As you reach for the " + noun + ", Vermithrax's eye snaps fully open. Fire builds in his throat...", "error");
+        print("");
+        print("'THIEF!' the dragon roars. 'You would steal from VERMITHRAX?'", "room-desc");
+        print("");
+        print("A blast of flame engulfs you. Your adventure ends in fire.", "error");
+        print("");
+        print("💀 GAME OVER 💀", "victory");
+        print("Tip: Try talking to the dragon first.", "system");
+        gameState.gameWon = true; // prevents further commands
+        return;
+      }
+      
       roomItems.splice(idx, 1);
       setRoomItems(gameState.currentRoom, roomItems);
       gameState.inventory.push(noun);
       print(`You take the ${noun}.`, "success");
       updateStatus();
+      
+      if (room.hasDragon) {
+        print("Vermithrax nods approvingly. 'A fair trade for your company, little friend.'", "room-desc");
+      }
       
       if (item.isGoal) {
         print("");
@@ -631,12 +673,76 @@
       print("There's nothing to read.", "error");
     }
 
+    function handleTalk(noun) {
+      const room = ROOMS[gameState.currentRoom];
+      
+      if (!room.hasDragon) {
+        print("There's no one here to talk to.", "error");
+        return;
+      }
+      
+      if (!gameState.dragonDialogue) gameState.dragonDialogue = 0;
+      
+      const dialogues = [
+        "'You do not flee,' the dragon muses, smoke curling from his jaws. 'Interesting. Most mortals run screaming. I am Vermithrax, last of the fire drakes. Tell me, little one, what brings you to my lair?'",
+        "'The Crown of Whispers?' Vermithrax chuckles, a sound like grinding boulders. 'That trinket upstairs? I've watched a hundred fools die seeking it. You're different. You stopped to speak with a dragon instead of stealing from him.'",
+        "'I have slept beneath this castle for a thousand years,' the dragon sighs, 'guarding treasures that no longer matter. Company is worth more than gold now. Take something from my hoard - a token of... friendship. Just promise you'll return to tell me tales of the world above.'",
+        "'Go on then, take what catches your eye. The scale, the chalice - or if you've truly earned my respect, ask for a tooth. That is a gift I give only to those I consider equals.'",
+        "Vermithrax settles back onto his gold pile, one eye still watching you warmly. 'Visit again, little friend. An old dragon appreciates good company.'"
+      ];
+      
+      print(dialogues[Math.min(gameState.dragonDialogue, dialogues.length - 1)], "room-desc");
+      
+      if (gameState.dragonDialogue === 2) {
+        gameState.dragonFriendly = true;
+        print("");
+        print("You have befriended the dragon!", "success");
+      }
+      
+      gameState.dragonDialogue = Math.min(gameState.dragonDialogue + 1, dialogues.length - 1);
+    }
+
+    function handleOffer(noun) {
+      const room = ROOMS[gameState.currentRoom];
+      
+      if (!room.hasDragon) {
+        print("There's no one to offer that to.", "error");
+        return;
+      }
+      
+      if (!noun) { print("Offer what?", "error"); gameState.moves--; return; }
+      
+      if (!gameState.inventory.includes(noun)) {
+        print("You don't have that.", "error");
+        return;
+      }
+      
+      if (noun === "ancient wine" || noun === "wine") {
+        print("Vermithrax's eyes light up. 'Ah! Wine from the castle cellars! I remember when the lords would bring me tribute.' He takes the tiny bottle delicately in one massive claw and drinks it in a single drop.", "room-desc");
+        print("");
+        print("'A fine vintage. You have good taste, little one. Here.' The dragon plucks a tooth from his own jaw and offers it to you. 'A dragon's tooth. It will protect you from fire.'", "success");
+        gameState.inventory = gameState.inventory.filter(i => i !== "ancient wine" && i !== noun);
+        gameState.inventory.push("dragon tooth");
+        gameState.dragonFriendly = true;
+        print("You received: dragon tooth", "success");
+        return;
+      }
+      
+      if (noun === "holy symbol") {
+        print("Vermithrax recoils slightly, smoke billowing. 'A holy symbol? I am not some demon to be banished, little priest. I am a DRAGON.' He snorts dismissively. 'Keep your trinket.'", "room-desc");
+        return;
+      }
+      
+      print("Vermithrax glances at the " + noun + " and snorts. 'I have mountains of treasure, little one. What use is that to me?'", "room-desc");
+    }
+
     function showHelp() {
       print("━━━ COMMANDS ━━━", "system");
       print("MOVEMENT: north/n, south/s, east/e, west/w, up/u, down/d");
       print("ACTIONS: look [thing], take [item], drop [item], use [item], read [item]");
+      print("SOCIAL: talk [creature], offer [item] - for interacting with beings");
       print("INFO: inventory/i, help, save, load, new game");
-      print("TIPS: Examine everything! Dark rooms need light. Some things are hidden.");
+      print("TIPS: Examine everything! Dark rooms need light. Some things are hidden. Not all creatures are hostile...");
     }
 
     // ==================== SAVE/LOAD ====================
@@ -676,6 +782,8 @@
         lampLit: false,
         gameWon: false,
         vaultOpen: false,
+        dragonDialogue: 0,
+        dragonFriendly: false,
         startTime: Date.now()
       };
       // Reset room locks
