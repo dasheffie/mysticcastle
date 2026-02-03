@@ -5,12 +5,20 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node src/server.js"
+    "dev": "node src/server.js",
+    "test": "mocha test/*.test.js --timeout 5000"
   },
-  "keywords": ["text-adventure", "game", "interactive-fiction"],
+  "keywords": [
+    "text-adventure",
+    "game",
+    "interactive-fiction"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "mocha": "^11.7.5"
   }
 }
