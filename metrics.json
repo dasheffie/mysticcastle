@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "MysticCastle",
-    "domain": null,
+    "domain": "mysticcastle.com",
     "description": "Classic text adventure game - explore a mysterious castle, solve puzzles, and uncover its secrets",
     "deployedAt": null,
     "status": "ready-for-deployment"
@@ -110,9 +110,9 @@
     }
   },
   "business": {
-    "domainFitScore": { "score": 5, "max": 10, "notes": "No specific domain - portfolio piece / game" },
-    "monetizationClarity": { "score": 3, "max": 10, "model": "N/A", "notes": "Portfolio demo, not monetization target" },
-    "revenuePotentialScore": { "score": 2, "max": 10, "tam": "Small - nostalgic gamers", "avgPrice": "N/A", "conversionEstimate": "N/A", "notes": "Fun project, not revenue focused" },
+    "domainFitScore": { "score": 10, "max": 10, "notes": "mysticcastle.com - perfect domain match for a fantasy adventure game" },
+    "monetizationClarity": { "score": 5, "max": 10, "model": "Ads + Premium chapters", "notes": "Free-to-play with optional ad-supported, could add DLC chapters or premium subscription" },
+    "revenuePotentialScore": { "score": 5, "max": 10, "tam": "Nostalgic gamers, casual web game players", "avgPrice": "$2-5 for DLC", "conversionEstimate": "2-5%", "notes": "Web games can achieve reasonable conversion with quality content" },
     "infrastructureCost": {
       "monthlyEstimate": 0,
       "currency": "USD",
