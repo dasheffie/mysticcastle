@@ -36,17 +36,39 @@
     "total": 0,
     "resolved": 0,
     "unresolved": 0,
-    "byType": { "syntax": 0, "runtime": 0, "build": 0, "dependency": 0, "config": 0, "other": 0 },
+    "byType": {
+      "syntax": 0,
+      "runtime": 0,
+      "build": 0,
+      "dependency": 0,
+      "config": 0,
+      "other": 0
+    },
     "log": []
   },
   "quality": {
     "testCoverage": {
       "overall": 78,
       "byType": {
-        "unit": { "count": 78, "coverage": 78, "notes": "78 unit tests for game engine: data validation, command parsing, room/item logic, game state" },
-        "integration": { "count": 0, "coverage": 0, "notes": "No integration tests" },
-        "e2e": { "count": 0, "coverage": 0, "notes": "No automated E2E" },
-        "manual": { "count": 15, "notes": "Tested all commands, navigation, puzzles, save/load, win conditions" }
+        "unit": {
+          "count": 78,
+          "coverage": 78,
+          "notes": "78 unit tests for game engine: data validation, command parsing, room/item logic, game state"
+        },
+        "integration": {
+          "count": 0,
+          "coverage": 0,
+          "notes": "No integration tests"
+        },
+        "e2e": {
+          "count": 0,
+          "coverage": 0,
+          "notes": "No automated E2E"
+        },
+        "manual": {
+          "count": 15,
+          "notes": "Tested all commands, navigation, puzzles, save/load, win conditions"
+        }
       },
       "notes": "Extensive manual testing - all game flows verified"
     },
@@ -60,7 +82,10 @@
     "dependencyHealth": {
       "totalDependencies": 1,
       "outdatedCount": 0,
-      "oldestDepTimeSinceLastRelease": { "name": "express", "months": 3 },
+      "oldestDepTimeSinceLastRelease": {
+        "name": "express",
+        "months": 3
+      },
       "mostOutdated": null,
       "notes": "Minimal deps - just Express for serving static files"
     },
@@ -94,7 +119,8 @@
         "puaDensity": 100,
         "notes": "Game engine module fully documented with JSDoc"
       }
-    }
+    },
+    "codeHygieneScore": 100
   },
   "security": {
     "vulnerabilities": {
@@ -110,13 +136,35 @@
     }
   },
   "business": {
-    "domainFitScore": { "score": 10, "max": 10, "notes": "mysticcastle.com - perfect domain match for a fantasy adventure game" },
-    "monetizationClarity": { "score": 5, "max": 10, "model": "Ads + Premium chapters", "notes": "Free-to-play with optional ad-supported, could add DLC chapters or premium subscription" },
-    "revenuePotentialScore": { "score": 5, "max": 10, "tam": "Nostalgic gamers, casual web game players", "avgPrice": "$2-5 for DLC", "conversionEstimate": "2-5%", "notes": "Web games can achieve reasonable conversion with quality content" },
+    "domainFitScore": {
+      "score": 10,
+      "max": 10,
+      "notes": "mysticcastle.com - perfect domain match for a fantasy adventure game"
+    },
+    "monetizationClarity": {
+      "score": 5,
+      "max": 10,
+      "model": "Ads + Premium chapters",
+      "notes": "Free-to-play with optional ad-supported, could add DLC chapters or premium subscription"
+    },
+    "revenuePotentialScore": {
+      "score": 5,
+      "max": 10,
+      "tam": "Nostalgic gamers, casual web game players",
+      "avgPrice": "$2-5 for DLC",
+      "conversionEstimate": "2-5%",
+      "notes": "Web games can achieve reasonable conversion with quality content"
+    },
     "infrastructureCost": {
       "monthlyEstimate": 0,
       "currency": "USD",
-      "breakdown": { "hosting": 0, "database": 0, "storage": 0, "cdn": 0, "other": 0 },
+      "breakdown": {
+        "hosting": 0,
+        "database": 0,
+        "storage": 0,
+        "cdn": 0,
+        "other": 0
+      },
       "notes": "Static files only - free tier"
     }
   },
@@ -143,25 +191,83 @@
     }
   },
   "complexity": {
-    "totalAddressableMarket": { "score": 3, "max": 10, "notes": "Niche market - text adventure fans" },
-    "averageCompetitorPrice": { "value": 0, "notes": "Free web games" },
-    "technicalComplexity": { "score": 3, "max": 10, "breakdown": { "backend": "Static server only", "frontend": "Vanilla JS game engine", "auth": "None" } },
-    "originality": { "score": 6, "max": 10, "notes": "Classic genre with polished implementation" },
-    "modernityOfStack": { "score": 7, "max": 10, "stack": ["Node.js", "Express", "Vanilla JS", "localStorage"] },
-    "appSpeedAtDeployment": { "score": 10, "max": 10, "notes": "Instant - no network requests during gameplay" },
-    "securityAtDeployment": { "score": 9, "max": 10, "notes": "No server-side data - client-only game" },
-    "bugDensityAtDeployment": { "knownBugs": 0, "notes": "All game paths tested and working" },
-    "transferability": { "score": 10, "max": 10, "notes": "Static files - runs anywhere" }
+    "totalAddressableMarket": {
+      "score": 3,
+      "max": 10,
+      "notes": "Niche market - text adventure fans"
+    },
+    "averageCompetitorPrice": {
+      "value": 0,
+      "notes": "Free web games"
+    },
+    "technicalComplexity": {
+      "score": 3,
+      "max": 10,
+      "breakdown": {
+        "backend": "Static server only",
+        "frontend": "Vanilla JS game engine",
+        "auth": "None"
+      }
+    },
+    "originality": {
+      "score": 6,
+      "max": 10,
+      "notes": "Classic genre with polished implementation"
+    },
+    "modernityOfStack": {
+      "score": 7,
+      "max": 10,
+      "stack": [
+        "Node.js",
+        "Express",
+        "Vanilla JS",
+        "localStorage"
+      ]
+    },
+    "appSpeedAtDeployment": {
+      "score": 10,
+      "max": 10,
+      "notes": "Instant - no network requests during gameplay"
+    },
+    "securityAtDeployment": {
+      "score": 9,
+      "max": 10,
+      "notes": "No server-side data - client-only game"
+    },
+    "bugDensityAtDeployment": {
+      "knownBugs": 0,
+      "notes": "All game paths tested and working"
+    },
+    "transferability": {
+      "score": 10,
+      "max": 10,
+      "notes": "Static files - runs anywhere"
+    }
   },
   "postDeployment": {
-    "changeFailureRate": { "deployments": 0, "failures": 0, "rate": null, "notes": "Not yet deployed" },
-    "waitlistConversion": { "visitors": 0, "signups": 0, "rate": null, "notes": "N/A" },
-    "componentReuseRate": { "sharedImports": 0, "localImports": 25, "rate": 0, "notes": "Self-contained game" }
+    "changeFailureRate": {
+      "deployments": 0,
+      "failures": 0,
+      "rate": null,
+      "notes": "Not yet deployed"
+    },
+    "waitlistConversion": {
+      "visitors": 0,
+      "signups": 0,
+      "rate": null,
+      "notes": "N/A"
+    },
+    "componentReuseRate": {
+      "sharedImports": 0,
+      "localImports": 25,
+      "rate": 0,
+      "notes": "Self-contained game"
+    }
   },
-  "userStories": { 
-    "total": 10, 
-    "completed": 10, 
-    "pending": 0, 
+  "userStories": {
+    "total": 10,
+    "completed": 10,
+    "pending": 0,
     "completedList": [
       "US-001: Command parser with aliases (go, n, look, l, etc.)",
       "US-002: 11 interconnected rooms with navigation",
@@ -197,6 +303,17 @@
     "puzzles": 3,
     "secrets": 2,
     "winConditions": 2,
-    "commands": ["go/n/s/e/w/u/d", "look/examine", "take/get", "drop", "use", "read", "inventory/i", "help", "save", "load"]
+    "commands": [
+      "go/n/s/e/w/u/d",
+      "look/examine",
+      "take/get",
+      "drop",
+      "use",
+      "read",
+      "inventory/i",
+      "help",
+      "save",
+      "load"
+    ]
   }
 }
